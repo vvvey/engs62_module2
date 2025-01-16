@@ -34,11 +34,13 @@ static int pushes=0;	       /* variable used to count interrupts */
 void btn_handler(void *devicep) {
 	/* coerce the generic pointer into a gpio */
 	XGpio *dev = (XGpio*)devicep;
+	devicep
 
 	pushes++;
 	printf(".");
 	fflush(stdout);
 
+	XGpio_InterruptDisable(&btnport, 1);
 }
 
 
