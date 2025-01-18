@@ -51,25 +51,21 @@ void btn_handler(void *devicep) {
 	if ((btn_output & btn0_mask) == btn0_mask) {
 		pushes++;
 		led_toggle(0);
-		printf(".");
 	}
 
 	if ((btn_output & btn1_mask) == btn1_mask) {
 			pushes++;
 			led_toggle(1);
-			printf(".");
 		}
 
 	if ((btn_output & btn2_mask) == btn2_mask) {
 			pushes++;
 			led_toggle(2);
-			printf(".");
 		}
 
 	if ((btn_output & btn3_mask) == btn3_mask) {
 			pushes++;
 			led_toggle(3);
-			printf(".");
 		}
 
 
@@ -93,25 +89,21 @@ void sw_handler(void *devicep) {
 	if ((sw_output & sw0_mask) != (swState & sw0_mask)) {
 		pushes++;
 		led_toggle(0);
-		printf(".");
 	}
 
 	if ((sw_output & sw1_mask) != (swState & sw1_mask)) {
 		pushes++;
 		led_toggle(1);
-		printf(".");
 	}
 
 	if ((sw_output & sw2_mask) != (swState & sw2_mask)) {
 			pushes++;
 			led_toggle(2);
-			printf(".");
 		}
 
 	if ((sw_output & sw3_mask) != (swState & sw3_mask)) {
 			pushes++;
 			led_toggle(3);
-			printf(".");
 		}
 
 
@@ -134,8 +126,67 @@ int main() {
   io_btn_init(btn_handler);
 
 
-  while(pushes<10) /* do nothing and handle interrupts */
-	  ;
+  while (1) {
+  	   int ch;
+
+  	   int index = 0;
+  	   char input[100];
+
+  	   printf(">");
+  	   fflush(stdout);
+
+  	   while ((ch = getchar()) != '\r' && ch != EOF ) {
+  		   input[index] = ch;
+  		   printf("%c", ch);
+  		   fflush(stdout);
+
+  		   index++;
+  	   }
+  	   input[index] = '\0';
+  	   printf("\n");
+  	   fflush(stdout);
+
+  	   if (strcmp(input, "q") == 0) {
+  		   break;
+  	   }
+
+     	   if (index == 1) {
+
+     		   char *ep;
+     		   long value = strtol(input, &ep,10);
+     		   if (*ep == '\0' && value >=0 && value <= 3) {
+
+     			   switch (value) {
+     			   case 0:
+     				   led_toggle(0);
+     				   break;
+     			   case 1:
+     				   led_toggle(1);
+     				   break;
+     			   case 2:
+     				   led_toggle(2);
+     				   break;
+     			   case 3:
+     				   led_toggle(3);
+     				   break;
+     			   }
+
+     			   if (led_get(value) == true) {
+     				   printf("[%ld on]\n", value);
+     			   } else {
+     				   printf("[%ld off]\n", value);
+     			   }
+     			 fflush(stdout);
+
+     		   }  else {
+     			   printf("\n");
+     		   }
+
+     	   } else {
+     		   printf("\n");
+     	   }
+     	   fflush(stdout);
+     }
 
   printf("\n[done]\n");
 
