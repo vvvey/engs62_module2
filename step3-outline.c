@@ -18,6 +18,7 @@
 
 #include "gic.h"		/* interrupt controller interface */
 #include "xgpio.h"		/* axi gpio interface */
+#include "io.h"
 
 /* hidden private state */
 static XGpio btnport;	       /* btn GPIO port instance */
@@ -88,7 +89,6 @@ void sw_handler(void *devicep) {
 
 	XGpio_InterruptClear(dev, SW_MASK);
 	u32 sw_output = XGpio_DiscreteRead(dev, 1);
-	printf("hello");
 	fflush(stdout);
 	u32 sw0_mask = 0b1;
 	u32 sw1_mask = 0b10;
@@ -130,53 +130,22 @@ void sw_handler(void *devicep) {
 int main() {
   init_platform();				
 
-  /* initialize the gic (c.f. gic.h) */
-  if (gic_init() == XST_SUCCESS) {
-	  printf("gic init success \n");
-  } else {
-	  printf("gic init failed \n");
-  }
-
-  /* initialize btnport (c.f. module 1) and immediately dissable interrupts */
-  XGpio_Initialize(&btnport, BTN_GPIO_DEVICE);
-  XGpio_Initialize(&swport, SW_GPIO_DEVICE);
-
-  XGpio_SetDataDirection(&btnport, 1, 0xFF);
-  XGpio_SetDataDirection(&swport, 1, 0xFF);
-  XGpio_InterruptDisable(&btnport, 0b11);
-  XGpio_InterruptDisable(&swport, SW_MASK);
-
-
-  /* connect handler to the gic (c.f. gic.h) */
-  gic_connect(BTN_INTERRUPT_ID, btn_handler, &btnport);
-  //gic_connect(SW_INTERRUPT_ID, sw_handler, &swport);
-
-  /* enable interrupts on channel (c.f. table 2.1) */
-  XGpio_InterruptEnable(&btnport, 0b11);
-  //XGpio_InterruptEnable(&swport, SW_MASK);
-
-  /* enable interrupt to processor (c.f. table 2.1) */
-  XGpio_InterruptGlobalEnable(&btnport);
-  //XGpio_InterruptGlobalEnable(&swport);
-
   led_init();
 
   printf("[hello]\n"); /* so we are know its alive */
-  pushes=0;
+  pushes = 0;
 
-
+  io_sw_init(sw_handler);
+  io_btn_init(btn_handler);
 
   while(pushes<10) /* do nothing and handle interrupts */
 	  ;
 
   printf("\n[done]\n");
 
-  /* disconnect the interrupts (c.f. gic.h) */
-  gic_disconnect(BTN_INTERRUPT_ID);
-  //gic_disconnect(SW_INTERRUPT_ID);
-  /* close the gic (c.f. gic.h) */
-  gic_close();
-  cleanup_platform();					/* cleanup the hardware platform */
+  io_sw_close();
+  io_btn_close();
+
   return 0;
 }
 
