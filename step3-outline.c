@@ -43,10 +43,30 @@ void btn_handler(void *devicep) {
 	u32 btn_output = XGpio_DiscreteRead(dev, 1);
 
 	u32 btn0_mask = 0b1;
-	if (btn_output & btn0_mask == btn0_mask) {
+	u32 btn1_mask = 0b10;
+	u32 btn2_mask = 0b100;
+	u32 btn3_mask = 0b100;
+
+	if ((btn_output & btn0_mask) == btn0_mask) {
 		pushes++;
 		printf(".");
 	}
+
+	if ((btn_output & btn1_mask) == btn1_mask) {
+			pushes++;
+			printf(".");
+		}
+
+	if ((btn_output & btn2_mask) == btn2_mask) {
+			pushes++;
+			printf(".");
+		}
+
+	if ((btn_output & btn3_mask) == btn3_mask) {
+			pushes++;
+			printf(".");
+		}
+
 
 	fflush(stdout);
 	XGpio_InterruptEnable(dev, 1);
