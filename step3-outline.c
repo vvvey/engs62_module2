@@ -34,13 +34,22 @@ static int pushes=0;	       /* variable used to count interrupts */
 void btn_handler(void *devicep) {
 	/* coerce the generic pointer into a gpio */
 	XGpio *dev = (XGpio*)devicep;
-	devicep
 
-	pushes++;
-	printf(".");
+	XGpio_InterruptClear(&btnport, 1);
+
+
+
+
+	u32 btn_output = XGpio_DiscreteRead(&btnport, 1);
+
+	u32 btn0_mask = 0b1;
+	if (btn_output & btn0_mask == btn0_mask) {
+		pushes++;
+		printf(".");
+	}
+
 	fflush(stdout);
-
-	XGpio_InterruptDisable(&btnport, 1);
+	XGpio_InterruptEnable(&btnport, 1);
 }
 
 
@@ -56,6 +65,7 @@ int main() {
 
   /* initialize btnport (c.f. module 1) and immediately dissable interrupts */
   XGpio_Initialize(&btnport, BTN_GPIO_DEVICE);
+  XGpio_SetDataDirection(&btnport, 1, 0);
   XGpio_InterruptDisable(&btnport, 1);
 
   /* connect handler to the gic (c.f. gic.h) */
@@ -69,13 +79,18 @@ int main() {
 
   printf("[hello]\n"); /* so we are know its alive */
   pushes=0;
+
+
+
   while(pushes<5) /* do nothing and handle interrups */
 	  ;
 
   printf("\n[done]\n");
 
   /* disconnect the interrupts (c.f. gic.h) */
-  /* close the gic (c.f. gic.h)
+  gic_disconnect(XPAR_FABRIC_GPIO_1_VEC_ID);
+  /* close the gic (c.f. gic.h) */
+  gic_close();
   cleanup_platform();					/* cleanup the hardware platform */
   return 0;
 }
