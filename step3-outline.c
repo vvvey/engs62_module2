@@ -21,19 +21,13 @@
 #include "io.h"
 
 /* hidden private state */
-static XGpio btnport;	       /* btn GPIO port instance */
-static XGpio swport;
 static int pushes=0;	       /* variable used to count interrupts */
 
-
-#define BTN_GPIO_DEVICE XPAR_AXI_GPIO_1_DEVICE_ID
-#define SW_GPIO_DEVICE XPAR_AXI_GPIO_2_DEVICE_ID
-#define BTN_INTERRUPT_ID XPAR_FABRIC_GPIO_1_VEC_ID
-#define SW_INTERRUPT_ID XPAR_FABRIC_GPIO_2_VEC_ID
 #define BTN_MASK XGPIO_IR_CH1_MASK
 #define SW_MASK XGPIO_IR_CH2_MASK
 
-#define OUTPUT 0
+static u32 swState = 0b0;
+
 /*
  * controll is passed to this function when a button is pushed
  *
@@ -45,7 +39,6 @@ void btn_handler(void *devicep) {
 
 	XGpio_InterruptClear(dev, BTN_MASK);
 	u32 interruptStatus = XGpio_InterruptGetStatus(dev);
-	printf("the interrupt is %d ", interruptStatus);
 	fflush(stdout);
 
 	u32 btn_output = XGpio_DiscreteRead(dev, 1);
@@ -85,6 +78,8 @@ void btn_handler(void *devicep) {
 }
 
 void sw_handler(void *devicep) {
+
+
 	XGpio *dev = (XGpio*)devicep;
 
 	XGpio_InterruptClear(dev, SW_MASK);
@@ -95,25 +90,25 @@ void sw_handler(void *devicep) {
 	u32 sw2_mask = 0b100;
 	u32 sw3_mask = 0b1000;
 
-	if ((sw_output & sw0_mask) == sw0_mask) {
+	if ((sw_output & sw0_mask) != (swState & sw0_mask)) {
 		pushes++;
 		led_toggle(0);
 		printf(".");
 	}
 
-	if ((sw_output & sw1_mask) == sw1_mask) {
-			pushes++;
-			led_toggle(1);
-			printf(".");
-		}
+	if ((sw_output & sw1_mask) != (swState & sw1_mask)) {
+		pushes++;
+		led_toggle(1);
+		printf(".");
+	}
 
-	if ((sw_output & sw2_mask) == sw2_mask) {
+	if ((sw_output & sw2_mask) != (swState & sw2_mask)) {
 			pushes++;
 			led_toggle(2);
 			printf(".");
 		}
 
-	if ((sw_output & sw3_mask) == sw3_mask) {
+	if ((sw_output & sw3_mask) != (swState & sw3_mask)) {
 			pushes++;
 			led_toggle(3);
 			printf(".");
@@ -122,7 +117,7 @@ void sw_handler(void *devicep) {
 
 		fflush(stdout);
 
-
+	swState = XGpio_DiscreteRead(dev, 1);
 	XGpio_InterruptEnable(dev, SW_MASK);
 }
 
@@ -137,6 +132,7 @@ int main() {
 
   io_sw_init(sw_handler);
   io_btn_init(btn_handler);
+
 
   while(pushes<10) /* do nothing and handle interrupts */
 	  ;
