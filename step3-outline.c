@@ -35,12 +35,12 @@ void btn_handler(void *devicep) {
 	/* coerce the generic pointer into a gpio */
 	XGpio *dev = (XGpio*)devicep;
 
-	XGpio_InterruptClear(&btnport, 1);
+	XGpio_InterruptClear(dev, 1);
 
 
 
 
-	u32 btn_output = XGpio_DiscreteRead(&btnport, 1);
+	u32 btn_output = XGpio_DiscreteRead(dev, 1);
 
 	u32 btn0_mask = 0b1;
 	if (btn_output & btn0_mask == btn0_mask) {
@@ -49,7 +49,7 @@ void btn_handler(void *devicep) {
 	}
 
 	fflush(stdout);
-	XGpio_InterruptEnable(&btnport, 1);
+	XGpio_InterruptEnable(dev, 1);
 }
 
 
@@ -82,7 +82,7 @@ int main() {
 
 
 
-  while(pushes<5) /* do nothing and handle interrups */
+  while(pushes<5) /* do nothing and handle interrupts */
 	  ;
 
   printf("\n[done]\n");
